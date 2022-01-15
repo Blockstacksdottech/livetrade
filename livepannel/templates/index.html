@@ -1,0 +1,223 @@
+{% extends "footer.html" %}
+{% block body %}
+{% load tools %}
+<body>
+
+  <!-- ======= Header ======= -->
+  <header id="header" class="d-flex align-items-center header-transparent">
+    <div class="container d-flex align-items-center justify-content-between">
+
+      <div class="logo">
+      	<a href="index.html" class="text-center"><img src="assets/img/logo.png" class="img-fluid" alt="MOROBIT"></a>
+      </div>
+
+      <nav id="navbar" class="navbar">
+        <ul>
+          <li><a class="nav-link scrollto active" href="index.html">Home</a></li>
+          {% comment %} <li><a class="nav-link scrollto" href="#">Menu</a></li>
+          <li><a class="nav-link scrollto" href="#">Menu</a></li>
+          <li><a class="nav-link scrollto" href="#">Menu</a></li> {% endcomment %}
+        </ul>
+        <i class="bi bi-list mobile-nav-toggle"></i>
+      </nav>
+
+    </div>
+  </header><!-- End Header -->
+
+  <main id="main">
+
+    <!-- ======= Total Balance Section ======= -->
+    <section id="about" class="about">
+      <div class="container-fluid">
+
+        <div class="row">
+          <div class="col-xl-6 col-lg-6 d-flex justify-content-center" data-aos="fade-right">
+          	<img src="assets/img/about.png" class="img-fluid">
+          </div>
+
+          <div class="col-xl-6 col-lg-6 icon-boxes d-flex flex-column align-items-stretch justify-content-center py-5 px-lg-5" data-aos="fade-left">
+            <h3>Total Balance</h3>
+
+            <div class="icon-box" data-aos="zoom-in" data-aos-delay="100">
+            	<div class="table-responsive">
+	              <table class="table">
+								  <tbody>
+								  {% for elem in all_balances%}
+								    <tr>
+								      <th scope="row">{% getel elem 'coin' %}</th>
+								      <td>{% getel elem 'total' %}</td>
+								      <td>{% getel elem 'total_usd' %}</td>
+								    </tr>
+								    {% endfor %}
+								  </tbody>
+								  <tfoot>
+							      <tr>
+							        <td colspan="2">Total</td>
+							        <td><span data-purecounter-start="0" data-purecounter-end="{{all_total}}" data-purecounter-duration="4" class="purecounter"></span></td>
+							      </tr>
+							    </tfoot>
+								</table>
+							</div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section><!-- End Total Balance Section -->
+
+    <!-- ======= Exchange Balances Section ======= -->
+    <section id="features" class="features">
+      <div class="container">
+
+        <div class="section-title" data-aos="fade-up">
+          <h2>Exchange Balances</h2>
+          <p>Check The Balances</p>
+        </div>
+
+        <div class="row" data-aos="fade-left">
+          <div class="col-lg-4 col-md-4">
+            <div class="icon-box" data-aos="zoom-in" data-aos-delay="50">
+            	<h3 class="text-center mb-4">FTX</h3>
+              <div class="table-responsive">
+	              <table class="table">
+								  <tbody>
+								    {% for elem in ftx_balances%}
+								    <tr>
+								      <th scope="row">{% getel elem 'coin' %}</th>
+								      <td>{% getel elem 'total' %}</td>
+								      <td>{% getel elem 'total_usd' %}</td>
+								    </tr>
+								    {% endfor %}
+								    
+								  </tbody>
+								  <tfoot>
+							      <tr>
+							        <td colspan="2">Total</td>
+							        <td>$<span data-purecounter-start="0" data-purecounter-end="{{ftx_total}}" data-purecounter-duration="5" class="purecounter"></span>.00</td>
+							      </tr>
+							    </tfoot>
+								</table>
+							</div>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-4">
+            <div class="icon-box" data-aos="zoom-in" data-aos-delay="100">
+            	<h3 class="text-center mb-4">REX</h3>
+              <div class="table-responsive">
+	              <table class="table">
+								  <tbody>
+								    {% for elem in rex_balances%}
+								    <tr>
+								      <th scope="row">{% getel elem 'coin' %}</th>
+								      <td>{% getel elem 'total' %}</td>
+								      <td>{% getel elem 'total_usd' %}</td>
+								    </tr>
+								    {% endfor %}
+								  </tbody>
+								  <tfoot>
+							      <tr>
+							        <td colspan="2">Total</td>
+							        <td>$<span data-purecounter-start="0" data-purecounter-end="{{rex_total}}" data-purecounter-duration="6" class="purecounter"></span>.00</td>
+							      </tr>
+							    </tfoot>
+								</table>
+							</div>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-4">
+            <div class="icon-box" data-aos="zoom-in" data-aos-delay="150">
+            	<h3 class="text-center mb-4">Bitcoin Trade</h3>
+              <div class="table-responsive">
+	              <table class="table">
+								  <tbody>
+								    <tr>
+								      <th scope="row">BTC</th>
+								      <td>0.1</td>
+								      <td>$6000.00</td>
+								    </tr>
+								    <tr>
+								      <th scope="row">ETH</th>
+								      <td>0.1</td>
+								      <td>$380.00</td>
+								    </tr>
+								    <tr>
+								      <th scope="row">USDT</th>
+								      <td>500.00</td>
+								      <td>$500.00</td>
+								    </tr>
+								    <tr>
+								      <th scope="row">USDT</th>
+								      <td>9000</td>
+								      <td>$9000.00</td>
+								    </tr>
+								    <tr>
+								      <th scope="row">DAI</th>
+								      <td>3000</td>
+								      <td>$3000.00</td>
+								    </tr>
+								  </tbody>
+								  <tfoot>
+							      <tr>
+							        <td colspan="2">Total</td>
+							        <td>$<span data-purecounter-start="0" data-purecounter-end="18880" data-purecounter-duration="7" class="purecounter"></span>.00</td>
+							      </tr>
+							    </tfoot>
+								</table>
+							</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section><!-- End Exchange Balances Section -->
+
+    <!-- ======= Last Trades Section ======= -->
+    <section id="contact" class="contact">
+      <div class="container">
+
+        <div class="section-title" data-aos="fade-up">
+          <h2>Last Trades</h2>
+        </div>
+
+        <div class="row">
+        	<div class="col-lg-12" data-aos="fade-right" data-aos-delay="100">
+        		<div class="table-responsive">
+	              <table class="table">
+	              	<thead>
+	              		<tr>
+		              		<th>Exchange</th>
+		              		<th>Market</th>
+		              		<th>Side</th>
+		              		<th>Size</th>
+		              		<th>Price</th>
+		              		<th>Total</th>
+		              		<th>Timestamp</th>
+		              	</tr>
+	              	</thead>
+								  <tbody>
+								  {% for trade in all_orders %}
+								    <tr>
+								      <th scope="row">{% getel trade 'exc' %}</th>
+								      <td>{% getel trade 'market' %}</td>
+								      <td class="text-uppercase">{% getel trade 'side' %}</td>
+								      <td>{% getel trade 'size' %}</td>
+								      <td><span data-purecounter-start="0" data-purecounter-end={% getel trade 'price' %} data-purecounter-duration="9" class="purecounter"></span></td>
+								      <td><span data-purecounter-start="0" data-purecounter-end={% getel trade 'total' %} data-purecounter-duration="9" class="purecounter"></span></td>
+								      <td>{% getel trade 'stamp' %}</td>
+								    </tr>
+									{% endfor %}
+								    
+								  </tbody>
+								</table>
+							</div>
+        	</div>
+
+        </div>
+
+      </div>
+    </section><!-- End Last Trades Section -->
+
+  </main><!-- End #main -->
+
+  {% endblock body %}
