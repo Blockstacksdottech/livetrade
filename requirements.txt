@@ -4,3 +4,4 @@ djangorestframework-simplejwt
 requests
 beautifulsoup4
 ccxt
+python-dateutil

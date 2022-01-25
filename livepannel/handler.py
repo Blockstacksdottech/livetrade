@@ -275,9 +275,9 @@ def formatBitcoinTradeBalance(ex):
             print(float(elem['available_amount']))
             brl_rate = ex.estimated_price(pair="BRL"+elem['currency_code'],amount=float(elem['available_amount']),type="buy")
             brl_rate = brl_rate['price']
-            price = brl_rate / usd_rate
+            price = roudn(brl_rate / usd_rate,2)
         else:
-            price = float(elem['available_amount']) / usd_rate
+            price = round(float(elem['available_amount']) / usd_rate,2)
         
         total += price
         dct = {"coin" : elem['currency_code'],"total":elem["available_amount"],"total_usd": str(price) + " USD"}

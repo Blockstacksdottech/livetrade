@@ -40,19 +40,23 @@ class AddUser(APIView):
                 data = request.data 
                 print(data)
                 username = data['username']
-                u = CustomUser.objects.filter(username = username)
-                if len(u) == 0:
-                    s = RegisterSerializer(data=data)
-                    if s.is_valid():
-                        print('valid')
-                        resp = s.save()
-                        print(resp)
-                        return Response(resp)
+                t_u = CustomUser.objects.filter(email = data['email'])
+                if len(t_u) == 0:
+                    u = CustomUser.objects.filter(username = username)
+                    if len(u) == 0:
+                        s = RegisterSerializer(data=data)
+                        if s.is_valid():
+                            print('valid')
+                            resp = s.save()
+                            print(resp)
+                            return Response(resp)
+                        else:
+                            print('not valid')
+                            return Response({'result':'not created'})
                     else:
-                        print('not valid')
-                        return Response({'result':'not created'})
+                        return Response({'failed':True,'message':"Username Used"},status.HTTP_401_UNAUTHORIZED)
                 else:
-                    return Response({'failed':True,'message':"Username Used"},status.HTTP_401_UNAUTHORIZED)
+                    return Response({'failed':True,'message':"Email Used"},status.HTTP_401_UNAUTHORIZED)
         return Response({'failed':True},status.HTTP_401_UNAUTHORIZED)
 
 
