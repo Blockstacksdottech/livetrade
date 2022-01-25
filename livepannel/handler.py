@@ -5,8 +5,11 @@ from bs4 import BeautifulSoup
 import requests as req
 import json
 from datetime import datetime,timedelta
+from dateutil import parser
 import ccxt
 import json
+from livetradeapi.bitcointrade import PrivateApi
+
 
 from livetradeapi.models import *
 
@@ -24,6 +27,68 @@ binance_key = "L9BX0FipVJE27oRLNiRCfpivHhG8659M8z9WpPEl4TeLUdHkvcFicd1baxnIdcXU"
 binance_secret = "1Kh9CGPJWp4zDzO4MgRdgBGLVPgoTf68lgT8m9IoDUhw4E4fUj14ojTRlgrF4QMd"
 
 
+def get_bitcoin_trade(user):
+    #BitcoinTrade ==> id 3 
+    conf = Config.objects.filter(user=user,exchange=3)
+    #conf = []
+    if len(conf) > 0:
+        conf = conf[0]
+        print(conf.public_key)
+        ap = PrivateApi(conf.public_key)
+    else:
+        ap = False
+
+    return ap
+
+
+
+def get_exchanger_handlers(user):
+    ex_class = getattr(ccxt,ccxt.exchanges[96])
+    ex_class_2 = getattr(ccxt,ccxt.exchanges[61])
+    ex_class_3 = getattr(ccxt,ccxt.exchanges[6])
+
+    #FTX ==> id 2 
+    conf = Config.objects.filter(user=user,exchange=2)
+    #conf = []
+    if len(conf) > 0:
+        conf = conf[0]
+        ex = ex_class_2({
+        'apiKey' : conf.public_key,
+        'secret' : conf.private_key
+    })
+    else:
+        ex = False
+
+
+
+    #Ripio ==> id 1
+    conf = Config.objects.filter(user=user,exchange=1)
+    
+    #conf = []
+    if len(conf) > 0:
+        conf = conf[0]
+        exc = ex_class({
+        'apiKey' : conf.public_key,
+        'secret' : conf.private_key
+    })
+    else:
+        exc = False
+
+
+    
+    #Binance ==> id 4
+    conf = Config.objects.filter(user=user,exchange=4)
+    #conf = []
+    if len(conf) > 0:
+        conf = conf[0]
+        exc2 = ex_class_3({
+        'apiKey' : conf.public_key,
+        'secret' : conf.private_key
+    })
+    else:
+        exc2 = False
+
+    return ex,exc,exc2
 
 
 
@@ -72,6 +137,10 @@ def convertStamp(stamp):
     d = datetime.fromtimestamp(stamp)
     return d.strftime("%m/%d/%Y, %H:%M:%S")
 
+def getBitcoinTradeTimeStamp(dt):
+    date_obj = parser.parse(dt)
+    return date_obj.timestamp()
+
 
 
 def get_org_symbols(exc):
@@ -88,50 +157,7 @@ def get_org_symbols(exc):
             other.append(sym)
     return usdc_symbols,ars_symbols,other
 
-def get_exchanger_handlers(user):
-    ex_class = getattr(ccxt,ccxt.exchanges[96])
-    ex_class_2 = getattr(ccxt,ccxt.exchanges[61])
-    ex_class_3 = getattr(ccxt,ccxt.exchanges[6])
 
-    #FTX ==> id 2 
-    conf = Config.objects.filter(user=user,exchange=2)
-    if len(conf) > 0:
-        conf = conf[0]
-        ex = ex_class_2({
-        'apiKey' : conf.public_key,
-        'secret' : conf.private_key
-    })
-    else:
-        ex = False
-
-
-
-    #Ripio ==> id 1
-    #conf = Config.objects.filter(user=user,exchange=1)
-    conf = []
-    if len(conf) > 0:
-        conf = conf[0]
-        exc = ex_class({
-        'apiKey' : conf.public_key,
-        'secret' : conf.private_key
-    })
-    else:
-        exc = False
-
-
-    
-    #Binance ==> id 4
-    conf = Config.objects.filter(user=user,exchange=4)
-    if len(conf) > 0:
-        conf = conf[0]
-        exc2 = ex_class_3({
-        'apiKey' : conf.public_key,
-        'secret' : conf.private_key
-    })
-    else:
-        exc2 = False
-
-    return ex,exc,exc2
     
 
 def format_float(amount,amount_usd):
@@ -234,6 +260,30 @@ def formatBinanceBalance(ex):
     return res,total
 
 
+def formatBitcoinTradeBalance(ex):
+    balance = ex.balance()
+    usd_rate = ex.estimated_price(pair="BRLUSDC",amount=float(1),type="buy")
+    
+    usd_rate = usd_rate['price']
+    
+    res = []
+    total = 0
+    for elem in balance:
+        if float(elem['available_amount']) == 0 :
+            continue
+        if elem['currency_code'] != "BRL":
+            print(float(elem['available_amount']))
+            brl_rate = ex.estimated_price(pair="BRL"+elem['currency_code'],amount=float(elem['available_amount']),type="buy")
+            brl_rate = brl_rate['price']
+            price = brl_rate / usd_rate
+        else:
+            price = float(elem['available_amount']) / usd_rate
+        
+        total += price
+        dct = {"coin" : elem['currency_code'],"total":elem["available_amount"],"total_usd": str(price) + " USD"}
+        res.append(dct)
+    return res,total
+
 def group_balances(*args):
     coin_b = {}
     for arg in args:
@@ -263,28 +313,50 @@ def group_balances(*args):
 
 def get_balances(user):
     ex,exc,exc2 = get_exchanger_handlers(user)
-    if ex:
+    ap = get_bitcoin_trade(user)
 
-        ex.load_markets()
-        ftx_balances,ftx_total = format_ftx_balance(ex)
-    else:
+    try:
+        if ex:
+
+            ex.load_markets()
+            ftx_balances,ftx_total = format_ftx_balance(ex)
+        else:
+            ftx_balances,ftx_total = [],0
+    except Exception as e:
+        print(str(e))
         ftx_balances,ftx_total = [],0
-    if exc:
-        exc.load_markets()
-        rex_balances,rex_total = format_rex_balance(exc)
-    else:
+    try:
+        if exc:
+            exc.load_markets()
+            rex_balances,rex_total = format_rex_balance(exc)
+        else:
+            rex_balances,rex_total = [],0
+    except Exception as e:
+        print(str(e))
         rex_balances,rex_total = [],0
     
-    if exc2:
-        exc2.load_markets()
-        binance_balances,binance_total = formatBinanceBalance(exc2)
-    else:
+    try:
+        if exc2:
+            exc2.load_markets()
+            binance_balances,binance_total = formatBinanceBalance(exc2)
+        else:
+            binance_balances,binance_total = [],0
+    except Exception as e:
+        print(str(e))
         binance_balances,binance_total = [],0
 
+    try:
+        if ap:
+            bitcoinTrade_balances,bitcoinTrade_total = formatBitcoinTradeBalance(ap)
+        else:
+            bitcoinTrade_balances,bitcoinTrade_total = [],0
+    except Exception as e:
+        print(str(e))
+        bitcoinTrade_balances,bitcoinTrade_total = [],0
     
     
-    all_total = ftx_total + rex_total + binance_total
-    pre_res = group_balances(ftx_balances,rex_balances,binance_balances)
+    all_total = ftx_total + rex_total + binance_total + bitcoinTrade_total
+    pre_res = group_balances(ftx_balances,rex_balances,binance_balances,bitcoinTrade_balances)
     res = []
     for coin in pre_res:
         total,total_usd = format_float(pre_res[coin]['total'],pre_res[coin]['total_usd'])
@@ -294,9 +366,18 @@ def get_balances(user):
             "total_usd" : total_usd
         })
     res = sorted(res,key=lambda  k :  float(k['total_usd'].split(' ')[0]),reverse=True)
-    return res,ftx_balances,rex_balances,format_single_float(ftx_total), format_single_float(rex_total),binance_balances,format_single_float(binance_total),format_single_float(all_total)
+    return (res,
+    ftx_balances,
+    rex_balances,
+    format_single_float(ftx_total),
+     format_single_float(rex_total),
+     binance_balances,
+     format_single_float(binance_total),
+     format_single_float(all_total),
+     bitcoinTrade_balances,
+     format_single_float(bitcoinTrade_total)
         
-    
+    )
 
 def get_ftx_orders(ex):
     trades = ex.fetchOrders( since=None, limit=None, params={})
@@ -368,29 +449,73 @@ def getBinanceOrders(ex):
     return all_trades
 
 
+def getBitcoinTradeOrders(ap):
+    pairs = ['BRL1INCH',  'BRLBCH', 'BRLBTC', 'BRLDAI', 'BRLDOT', 'BRLENS', 'BRLEOS', 'BRLETH', 'BRLKSM', 'BRLLTC', 'BRLRPC', 'BRLSPELL', 'BRLUNI', 'BRLUSDC', 'BRLXRP']
+    
+    all_trades = []
+    for pair in pairs:
+        orders = ap.get_user_orders(pair = pair)
+        orders = orders['orders']
+        for trade in orders:
+            stamp = getBitcoinTradeTimeStamp(trade['create_date'])
+            all_trades.append({
+                'exc':'BitcoinTrade',
+                'market' : trade['pair'],
+                'side' : trade['type'],
+                'price' : trade['unit_price'],
+                'total' : trade['total_price'],
+                'size' : trade['executed_amount'],
+                'timestamp' : stamp,
+                'stamp' : convertStamp(stamp)
+            })
+    return all_trades
+
+
 def get_orders(user):
     ex,exc,exc2 = get_exchanger_handlers(user)
+    ap = get_bitcoin_trade(user)
     all_trades = []
-    if ex:
-        ex.load_markets()
-        ftx_trades = get_ftx_orders(ex)
-    else:
+    try:
+        if ex:
+            ex.load_markets()
+            ftx_trades = get_ftx_orders(ex)
+        else:
+            ftx_trades = []
+    except Exception as e:
+        print(str(e))
         ftx_trades = []
     
-    if exc:
-        exc.load_markets()
-        rex_trades = get_rex_orders(exc)
-    else:
+    try:
+        if exc:
+            exc.load_markets()
+            rex_trades = get_rex_orders(exc)
+        else:
+            rex_trades = []
+    except Exception as e:
+        print(str(e))
         rex_trades = []
     
-    if exc2:
-        exc2.load_markets()
-        binance_trades = getBinanceOrders(exc2)
-    else:
+    try:
+        if exc2:
+            exc2.load_markets()
+            binance_trades = getBinanceOrders(exc2)
+        else:
+            binance_trades = []
+    except Exception as e:
+        print(str(e))
         binance_trades = []
+
+    try:
+        if ap:
+            bitcoinTradeOrders = getBitcoinTradeOrders(ap)
+        else:
+            bitcoinTradeOrders = []
+    except Exception as e:
+        print(str(e))
+        bitcoinTradeOrders = []
     
     rex_trades = []
-    all_trades += ftx_trades + rex_trades + binance_trades
+    all_trades += ftx_trades + rex_trades + binance_trades + bitcoinTradeOrders
     all_trades = sorted(all_trades,key = lambda k : k['timestamp'],reverse=True)
     return all_trades
     

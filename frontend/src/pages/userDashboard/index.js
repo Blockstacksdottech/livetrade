@@ -18,10 +18,12 @@ function UserDashboard(props){
         "all_balances" : [],
         "ftx_balances" : [],
         "rex_balances" : [],
+        "bitcoinTrade_balances" : [],
         "binance_balances" : [],
         "binance_total" :0,
         "ftx_total" : 0,
         "rex_total" : 0,
+        "bitcoinTrade_total" : 0,
         "all_total" : 0,
         
     })
@@ -227,10 +229,32 @@ function UserDashboard(props){
           </div> */}
           <div className="col-lg-6 col-md-6 mt-2">
             <div className="icon-box" data-aos="zoom-in" data-aos-delay={150}>
-              <h3 className="text-center mb-4">Bitcoin Trade</h3>
+              <h3 className="text-center mb-4">Ripio</h3>
               <div className="table-responsive">
               {data['rex_balances'].length > 0 ?<table className="table">
                  <tbody>{data['rex_balances'].map((e,i) => {
+                          return (<tr>
+                            <th scope="row">{ e['coin'] }</th>
+                            <td>{ e['total'] }</td>
+                            <td>{ e['total_usd'] }</td>
+                          </tr>)
+                      })}</tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={2}>Total</td>
+                      <td>$<span data-purecounter-start={0} data-purecounter-end={18880} data-purecounter-duration={7} className="purecounter" />{data['rex_total']}</td>
+                    </tr>
+                  </tfoot>
+                </table> : <h5>Data Not Available</h5>}
+              </div>
+            </div>
+          </div>
+          <div className="col-lg-6 col-md-6 mt-2">
+            <div className="icon-box" data-aos="zoom-in" data-aos-delay={150}>
+              <h3 className="text-center mb-4">Bitcoin Trade</h3>
+              <div className="table-responsive">
+              {data['bitcoinTrade_balances'].length > 0 ?<table className="table">
+                 <tbody>{data['bitcoinTrade_balances'].map((e,i) => {
                           return (<tr>
                             <th scope="row">{ e['coin'] }</th>
                             <td>{ e['total'] }</td>

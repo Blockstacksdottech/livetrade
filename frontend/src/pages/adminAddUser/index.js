@@ -75,6 +75,7 @@ function AddUser(props){
                       autoDismiss:true
                   })
               }else{
+                console.log(resp)
                   addToast("User Creation Failed",{
                       appearance: "error",
                       autoDismiss: true

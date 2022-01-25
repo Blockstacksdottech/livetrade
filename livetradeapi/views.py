@@ -39,15 +39,20 @@ class AddUser(APIView):
             if user.is_superuser:
                 data = request.data 
                 print(data)
-                s = RegisterSerializer(data=data)
-                if s.is_valid():
-                    print('valid')
-                    resp = s.save()
-                    print(resp)
-                    return Response(resp)
+                username = data['username']
+                u = CustomUser.objects.filter(username = username)
+                if len(u) == 0:
+                    s = RegisterSerializer(data=data)
+                    if s.is_valid():
+                        print('valid')
+                        resp = s.save()
+                        print(resp)
+                        return Response(resp)
+                    else:
+                        print('not valid')
+                        return Response({'result':'not created'})
                 else:
-                    print('not valid')
-                    return Response({'result':'not created'})
+                    return Response({'failed':True,'message':"Username Used"},status.HTTP_401_UNAUTHORIZED)
         return Response({'failed':True},status.HTTP_401_UNAUTHORIZED)
 
 
@@ -97,7 +102,7 @@ class getData(APIView):
 
     def get(self,request,format=None):
         user = request.user
-        all_balances,ftx_balances,rex_balances,ftx_total,rex_total,binance_balances,binance_total,all_total = get_balances(user)
+        all_balances,ftx_balances,rex_balances,ftx_total,rex_total,binance_balances,binance_total,all_total,bitcointrade_balances,bitcointrade_total = get_balances(user)
         #all_orders = get_orders()
         data = {
             "all_balances" : all_balances,
@@ -105,6 +110,8 @@ class getData(APIView):
             "rex_balances" : rex_balances,
             "binance_balances" : binance_balances,
             "binance_total" : binance_total,
+            "bitcoinTrade_balances" : bitcointrade_balances,
+            "bitcoinTrade_total" : bitcointrade_total,
             "ftx_total" : ftx_total,
             "rex_total" : rex_total,
             "all_total" : all_total,

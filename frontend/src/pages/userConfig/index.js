@@ -242,7 +242,7 @@ function UserConfig(props){
       <div className="row mt-4" data-aos="fade-left">
         <div className="col-lg-6 col-md-6">
           <div className="icon-box" data-aos="zoom-in" data-aos-delay={50}>
-            <h3 className="text-center mb-4">LiveTrade</h3>
+            <h3 className="text-center mb-4">BitcoinTrade</h3>
             <form>
               <div className="input-group mb-3">
                 <div className="input-group-append">
