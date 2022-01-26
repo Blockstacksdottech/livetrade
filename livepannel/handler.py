@@ -9,7 +9,7 @@ from dateutil import parser
 import ccxt
 import json
 from livetradeapi.bitcointrade import PrivateApi
-
+import os
 
 from livetradeapi.models import *
 
@@ -260,27 +260,70 @@ def formatBinanceBalance(ex):
     return res,total
 
 
+def load_coins():
+    print(os.getcwd())
+    f = open("livepannel/coins.json",'r',encoding="utf-8")
+    coins = json.loads(f.read())
+    f.close()
+    return coins
+
+
+def FetchCoinInfo(coin,coins):
+    coin_data = list(filter(lambda x : x['symbol'].lower() == coin.lower() , coins))
+    print(coin_data)
+    if len(coin_data) > 0:
+        return coin_data
+    else:
+        return False
+
+
+def FetchCoinPrice(coin,coins,amount):
+    c_data = FetchCoinInfo(coin,coins)
+    if c_data:
+        for d in c_data:
+            resp = req.get('https://api.coingecko.com/api/v3/simple/price?ids='+d['id']+'&vs_currencies='+'usd')
+            resp = json.loads(resp.content.decode())
+            if len(resp[d['id']].keys()) > 0:
+                return round(resp[d['id']]['usd'] * amount,2)
+            else:
+                continue
+            return "__"
+    else:
+        return "__"
+
+
+
 def formatBitcoinTradeBalance(ex):
+    coins = load_coins()
     balance = ex.balance()
     usd_rate = ex.estimated_price(pair="BRLUSDC",amount=float(1),type="buy")
     
     usd_rate = usd_rate['price']
-    
+    #print("here")
     res = []
     total = 0
     for elem in balance:
-        if float(elem['available_amount']) == 0 :
+        #print(elem['currency_code'])
+        if float(elem['available_amount']) == 0  and float(elem['locked_amount']) == 0:
             continue
+
+        #print(elem['currency_code'])
+        am = float(elem['available_amount']) + float(elem['locked_amount'])
         if elem['currency_code'] != "BRL":
-            print(float(elem['available_amount']))
-            brl_rate = ex.estimated_price(pair="BRL"+elem['currency_code'],amount=float(elem['available_amount']),type="buy")
-            brl_rate = brl_rate['price']
-            price = roudn(brl_rate / usd_rate,2)
+            try:
+                brl_rate = ex.estimated_price(pair="BRL"+elem['currency_code'],amount=am,type="buy")
+                brl_rate = brl_rate['price']
+                price = round(brl_rate / usd_rate,2)
+            except Exception as e:
+                print(str(e))
+                price = FetchCoinPrice(elem['currency_code'],coins,am)
+                
+
         else:
-            price = round(float(elem['available_amount']) / usd_rate,2)
+            price = round(am / usd_rate,2)
         
         total += price
-        dct = {"coin" : elem['currency_code'],"total":elem["available_amount"],"total_usd": str(price) + " USD"}
+        dct = {"coin" : elem['currency_code'],"total":round(float(elem['available_amount']) + float(elem['locked_amount']),2),"total_usd": str(price) + " USD"}
         res.append(dct)
     return res,total
 
